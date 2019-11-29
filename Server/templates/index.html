@@ -12,23 +12,13 @@
 
 <body class="bg-light">
         {% block content %}
-        <div class="container m-0 col-12 p-0">
-                <div class="main">
-                        <div class="container">
-                                <div class="row">
-                                        <div class="col-lg-6 mt-1 col-md-12">
-                                                <form action="/Comment" method="post">
-                                                        <label
-                                                                class="btn　col-sm-12 col-12 rounded-0 m-0 p-0 border-white text-left">
-                                                                <p class="m-0 mt-1">コメント</p>
-                                                                <input type="text" name="comment" id="comment"
-                                                                        class="col-3">
-                                                        </label>
-                                                </form>
-                                        </div>
-                                </div>
-                        </div>
-                </div>
+        <div class="main">
+                <form action="/Comment" method="post">
+                        <label>
+                                <p class="m-0 mt-1">コメント</p>
+                                <input type="text" name="comment" id="comment">
+                        </label>
+                </form>
         </div>
         {% endblock %}
         <!-- <script src="/static/js/jquery-3-4-1.min.js"></script>
