@@ -5,13 +5,18 @@ import random
 import tkinter.font as font
 import tkinter as tk
 import time
-import os
+import ssl
+import yaml
 from PIL import Image, ImageTk, ImageFile
 import glob
+
+yaml_dict = yaml.load(open('secret.yaml').read())
+user_name, user_pass = yaml_dict['username'], yaml_dict['password']
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 root = tk.Tk()
-root.state('zoomed')
-# root.geometry("3840x2160")
+root.geometry("3840x2160")
 # root.wm_attributes('-fullscreen', 1)
 # root.tk.call("::tk::unsupported::MacWindowStyle",
 #              "style", root._w, "plain", "none")
@@ -37,14 +42,13 @@ class move_text:
     def __init__(self, canvas, comment):
         self.canvas = canvas
         self.text = self.canvas.create_text(
-            w - 30, random.uniform(
+            w, random.uniform(
                 2.0, 8.0) * 100, text=comment, font=font)
-        root.after(10, self.update)
-        # root.update()
+        root.after(1, self.update)
 
     def update(self):
-        self.canvas.move(self.text, -1, 0)
-        root.after(5, self.update)
+        self.canvas.move(self.text, -5, 0)
+        root.after(1, self.update)
 
 
 def next(event):
@@ -56,21 +60,25 @@ def next(event):
 
 def prev(event):
     global page
-    if 0 < page:
+    if 0 <= page:
         canvas.itemconfig(labelimg, image=img[page])
         page -= 1
 
 
 def rcv_comment():
     global canvas
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('45.76.215.122', 10023))
-    idpass = os.environ.get('PSSID')
-    print(idpass)
-    s.sendall(bytes(idpass))
+    context = ssl.create_default_context()
+    context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+    context.verify_mode = ssl.CERT_NONE
+    context.check_hostname = False
+    conn = context.wrap_socket(socket.socket(socket.AF_INET),
+                               server_hostname='45.76.215.122')
+    conn.connect(('45.76.215.122', 10023))
+    idpass = "{}:{}".format(user_name, user_pass).encode()
+    conn.sendall(idpass)
     while True:
         try:
-            data = s.recv(1024)
+            data = conn.recv(1024)
             if len(data) != 0:
                 comment = data.decode('utf-8')
                 print("recv:" + comment)
@@ -80,9 +88,9 @@ def rcv_comment():
             time.sleep(3)
         except KeyboardInterrupt:
             break
-            s.close
-        s.close
-    s.close
+            conn.close
+        conn.close
+    conn.close
 
 
 if __name__ == '__main__':
