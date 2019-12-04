@@ -2,16 +2,17 @@
 import socket
 from threading import Thread
 import random
-import tkinter.font as font
 import tkinter as tk
+import tkinter.font as font
 import time
 import ssl
 import yaml
 from PIL import Image, ImageTk, ImageFile
 import glob
 
-yaml_dict = yaml.load(open('secret.yaml').read())
-user_name, user_pass = yaml_dict['username'], yaml_dict['password']
+yaml_dict = yaml.load(open('secret.yaml').read(), Loader=yaml.SafeLoader)
+user_name, user_pass, host, port = yaml_dict['username'], yaml_dict['password'],\
+    yaml_dict['host'], int(yaml_dict['port'])
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -33,7 +34,7 @@ for i in range(1, 20):
 canvas = tk.Canvas(root, width=w, height=h)
 labelimg = canvas.create_image(w / 2, h / 2, image=img[0])
 canvas.pack()
-font = tk.font.Font(root, family="System", size=80)
+comment_font = font.Font(root, family="System", size=80)
 page = 1
 pagemax = len(glob.glob("Tmp/*"))
 
@@ -43,7 +44,7 @@ class move_text:
         self.canvas = canvas
         self.text = self.canvas.create_text(
             w, random.uniform(
-                2.0, 8.0) * 100, text=comment, font=font)
+                2.0, 8.0) * 100, text=comment, font=comment_font)
         root.after(1, self.update)
 
     def update(self):
@@ -72,8 +73,8 @@ def rcv_comment():
     context.verify_mode = ssl.CERT_NONE
     context.check_hostname = False
     conn = context.wrap_socket(socket.socket(socket.AF_INET),
-                               server_hostname='45.76.215.122')
-    conn.connect(('45.76.215.122', 10023))
+                               server_hostname=host)
+    conn.connect((host, port))
     idpass = "{}:{}".format(user_name, user_pass).encode()
     conn.sendall(idpass)
     while True:
