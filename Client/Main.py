@@ -4,12 +4,12 @@ from threading import Thread
 import random
 import tkinter as tk
 import tkinter.font as font
-import time
 import ssl
 import yaml
 from PIL import Image, ImageTk, ImageFile
 import glob
-
+import sys
+import time
 yaml_dict = yaml.load(open('secret.yaml').read(), Loader=yaml.SafeLoader)
 user_name, user_pass, host, port = yaml_dict['username'], yaml_dict['password'],\
     yaml_dict['host'], int(yaml_dict['port'])
@@ -18,12 +18,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 root = tk.Tk()
 root.geometry("3840x2160")
-# root.wm_attributes('-fullscreen', 1)
-# root.tk.call("::tk::unsupported::MacWindowStyle",
-#              "style", root._w, "plain", "none")
-root.wm_attributes("-topmost", True)
-w = root.winfo_screenwidth()
-h = root.winfo_screenheight()
+w = 3940
+h = 2160
 img = []
 for i in range(1, 20):
     tmp = Image.open(r"Tmp/page{}.png".format(i))
@@ -32,24 +28,35 @@ for i in range(1, 20):
     img.append(ImageTk.PhotoImage(tmp))
 
 canvas = tk.Canvas(root, width=w, height=h)
-labelimg = canvas.create_image(w / 2, h / 2, image=img[0])
 canvas.pack()
+labelimg = canvas.create_image(w / 2, h / 2, image=img[0])
 comment_font = font.Font(root, family="System", size=80)
 page = 1
 pagemax = len(glob.glob("Tmp/*"))
 
 
-class move_text:
-    def __init__(self, canvas, comment):
+class CommentManager:
+    def __init__(self, canvas):
+        self.canvas_text_list = []
         self.canvas = canvas
-        self.text = self.canvas.create_text(
-            w, random.uniform(
-                2.0, 8.0) * 100, text=comment, font=comment_font)
         root.after(1, self.update)
 
+    def add_text(self, comment):
+        text = self.canvas.create_text(
+            w, random.uniform(2.0, 18.0) * 100, text=comment, font=comment_font)
+        self.canvas_text_list.append(text)
+
     def update(self):
-        self.canvas.move(self.text, -5, 0)
-        root.after(1, self.update)
+        new_list = []
+        for canvas_text in self.canvas_text_list:
+            self.canvas.move(canvas_text, -15, 0)
+            x, y = self.canvas.coords(canvas_text)
+            if x > -10:
+                new_list.append(canvas_text)
+            else:
+                self.canvas.delete(canvas_text)
+        self.canvas_text_list = new_list
+        root.after(20, self.update)
 
 
 def next(event):
@@ -66,8 +73,11 @@ def prev(event):
         page -= 1
 
 
+def end(event):
+    sys.exit()
+
+
 def rcv_comment():
-    global canvas
     context = ssl.create_default_context()
     context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
     context.verify_mode = ssl.CERT_NONE
@@ -77,26 +87,27 @@ def rcv_comment():
     conn.connect((host, port))
     idpass = "{}:{}".format(user_name, user_pass).encode()
     conn.sendall(idpass)
+    manager = CommentManager(canvas)
     while True:
         try:
             data = conn.recv(1024)
-            if len(data) != 0:
-                comment = data.decode('utf-8')
-                print("recv:" + comment)
+            comment = data.decode('utf-8')
+            # comment = "test"
+            if len(comment):
                 if comment == "認証エラー":
                     break
-                move_text(canvas, comment)
-            time.sleep(3)
+                manager.add_text(comment)
+            time.sleep(1)
         except KeyboardInterrupt:
             break
-            conn.close
-        conn.close
-    conn.close
+    # conn.close()
 
 
 if __name__ == '__main__':
     th = Thread(target=rcv_comment)
+    th.setDaemon(True)
     th.start()
     root.bind("<Key-n>", next)
+    root.bind("<Key-q>", end)
     root.bind("<Key-p>", prev)
     root.mainloop()
