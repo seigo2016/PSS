@@ -10,29 +10,6 @@ from PIL import Image, ImageTk, ImageFile
 import glob
 import sys
 import time
-yaml_dict = yaml.load(open('secret.yaml').read(), Loader=yaml.SafeLoader)
-user_name, user_pass, host, port = yaml_dict['username'], yaml_dict['password'],\
-    yaml_dict['host'], int(yaml_dict['port'])
-
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-
-root = tk.Tk()
-root.geometry("3840x2160")
-w = 3940
-h = 2160
-img = []
-for i in range(1, 20):
-    tmp = Image.open(r"Tmp/page{}.png".format(i))
-    tmp = tmp.resize((w, h))
-
-    img.append(ImageTk.PhotoImage(tmp))
-
-canvas = tk.Canvas(root, width=w, height=h)
-canvas.pack()
-labelimg = canvas.create_image(w / 2, h / 2, image=img[0])
-comment_font = font.Font(root, family="System", size=80)
-page = 1
-pagemax = len(glob.glob("Tmp/*"))
 
 
 class CommentManager:
@@ -85,25 +62,46 @@ def rcv_comment():
     conn = context.wrap_socket(socket.socket(socket.AF_INET),
                                server_hostname=host)
     conn.connect((host, port))
-    idpass = "{}:{}".format(user_name, user_pass).encode()
+    idpass = "{}:6PJLao29r@l9eAZq%oCsqm@3I0z9JCfZQIQpCK%J".format(
+        user_name).encode()
     conn.sendall(idpass)
     manager = CommentManager(canvas)
     while True:
         try:
             data = conn.recv(1024)
             comment = data.decode('utf-8')
-            # comment = "test"
             if len(comment):
                 if comment == "認証エラー":
                     break
                 manager.add_text(comment)
-            time.sleep(1)
         except KeyboardInterrupt:
             break
-    # conn.close()
 
 
 if __name__ == '__main__':
+    yaml_dict = yaml.load(open('secret.yaml').read(), Loader=yaml.SafeLoader)
+    user_name, user_pass, host, port = yaml_dict['username'], yaml_dict['password'],\
+        yaml_dict['host'], int(yaml_dict['port'])
+
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+    root = tk.Tk()
+    root.geometry("3840x2160")
+    w = 3840
+    h = 2160
+    img = []
+    page = 1
+    pagemax = len(glob.glob("Tmp/*"))
+    for i in range(page, pagemax):
+        tmp = Image.open(r"Tmp/page{}.png".format(i))
+        tmp = tmp.resize((w, h))
+
+        img.append(ImageTk.PhotoImage(tmp))
+
+    canvas = tk.Canvas(root, width=w, height=h)
+    canvas.pack()
+    comment_font = font.Font(root, family="System", size=80)
+    labelimg = canvas.create_image(w / 2, h / 2, image=img[0])
     th = Thread(target=rcv_comment)
     th.setDaemon(True)
     th.start()
