@@ -111,3 +111,6 @@ PSS/
 *.yaml
 *.pu
 *.ini
+*.pem
+*.key
+*.crt
