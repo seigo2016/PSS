@@ -1,22 +1,42 @@
-var electron = require('electron');
-var app = electron.app;
-var BrowserWindow = electron.BrowserWindow;
-var mainWindow = null;
-var net = require('net');
+const electron = require('electron');
+const app = electron.app;
+const BrowserWindow = electron.BrowserWindow;
+let mainWindow = null;
+let externalDisplay = false;
 
-var client = new net.Socket();
 app.on('window-all-closed', function () {
   if (process.platform != 'darwin')
     app.quit();
 });
+
 app.on('ready', function () {
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      nodeIntegration: true
+  let electronScreen = electron.screen;
+  let displays = electronScreen.getAllDisplays();
+
+  for (let i in displays) {
+    if (displays[i].bounds.x != 0 || displays[i].bounds.y != 0) {
+      externalDisplay = displays[i];
+      break;
     }
-  });
+  }
+  if (externalDisplay) {
+    mainWindow = new BrowserWindow({
+      x: externalDisplay.x,
+      y: externalDisplay.y,
+      height: externalDisplay.bounds.height,
+      width: externalDisplay.bounds.width,
+      webPreferences: {
+        nodeIntegration: true
+      }
+    });
+  } else {
+    mainWindow = new BrowserWindow({
+      webPreferences: {
+        nodeIntegration: true
+      }
+    });
+  }
+  mainWindow.setFullScreen(true);
   mainWindow.loadURL('file://' + __dirname + '/index.html');
   mainWindow.webContents.openDevTools();
   mainWindow.on('closed', function () {
@@ -24,16 +44,3 @@ app.on('ready', function () {
   });
   console.log("App Start")
 });
-// app.on('quit', function () {
-//   client.destroy();
-//   console.log('App Quit')
-// });
-
-// client.on('data', function (data) {
-//   console.log('Received: ' + data);
-//   client.destroy(); // kill client after server's response
-// });
-
-// client.on('close', function () {
-//   console.log('Connection closed');
-// });

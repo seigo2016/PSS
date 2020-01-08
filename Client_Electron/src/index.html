@@ -3,18 +3,23 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Electron</title>
+  <title>PSS接続画面</title>
+  <link href="https://fonts.googleapis.com/css?family=Kosugi+Maru&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.2.3/css/uikit.min.css" rel="stylesheet">
 </head>
 
-<body>
-  <label class="">ユーザー名
-    <input type="text" name="comment" id="username">
-  </label>
-  <label class="">パスワード
-    <input type="password" name="comment" id="password">
-  </label>
+<body id="body">
+  <div id="main" class="uk-width-1-2@s uk-margin-large-left uk-margin-small uk-margin-medium-top">
+    <label class="uk-text-large">ユーザー名
+      <input type="text" name="comment" id="username" class="uk-input">
+    </label>
+    <label class="uk-text-large">パスワード
+      <input type="password" name="comment" id="password" class="uk-input">
+    </label>
+    <button class="connect uk-margin-small uk-button uk-button-default">接続</button>
+  </div>
   <script type="text/javascript" src="main.js"></script>
-  <button class="connect">接続</button>
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.2.3/js/uikit.min.js"></script>
 
 </html>
