@@ -115,3 +115,5 @@ PSS/
 *.key
 *.crt
 *.png
+node_modules/
+*.code-workspace
