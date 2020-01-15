@@ -21,13 +21,19 @@ window.onload = function () {
         defaultPath: '.',
         title: 'スライドのフォルダを選択してください'
     });
-    namepath.then(function (result) {
-        path = result.filePaths[0]
+    // this.console.log(namepath)
+    // namepath.then(function (result) {
+    try {
+        path = namepath[0]
         fs.readdir(path, function (err, files) {
             if (err) throw err;
             max = files.length;
         });
-    });
+    } catch (err) {
+        alert("正しいパスが指定されていません。アプリを終了します");
+        window.close();
+    }
+    // });
 }
 
 button.addEventListener('click', function (clickEvent) {
@@ -44,7 +50,10 @@ button.addEventListener('click', function (clickEvent) {
         process.stdin.resume();
     });
     socket.on('data', (data) => {
+        console.log(data.toString());
         if (data.toString() == '接続完了') {
+            console.log("Connected")
+            comment_list.push([data.toString()])
             document.body.style.backgroundImage = 'url("' + path + '/スライド1.png")';
             document.body.style.backgroundSize = 'cover';
             initCommentViewer();
@@ -55,6 +64,7 @@ button.addEventListener('click', function (clickEvent) {
             window.close();
         } else if (data.toString() != 'PING') {
             comment_list.push([data.toString()]);
+            console.log(data.toString);
         }
     });
 })
