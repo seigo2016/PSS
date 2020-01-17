@@ -3,6 +3,7 @@ const remote = require('electron').remote
 const dialog = require('electron').remote.dialog;
 const tls = require('tls');
 const fs = require('fs');
+const Jimp = require('jimp')
 const options = {
     cert: [fs.readFileSync(process.cwd() + '/src/server.crt')],
     rejectUnauthorized: false
@@ -11,33 +12,31 @@ let countComment = 0;
 let socket = null;
 let nowPageNumber = 1;
 let max = 0;
-let path = null;
-let comment_list = []
+let path;
+let imageresize;
+let comment_list = [];
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 window.onload = function () {
-    let namepath = dialog.showOpenDialog({
+    let options = {
         properties: ['openDirectory'],
         defaultPath: '.',
         title: 'スライドのフォルダを選択してください'
-    });
-    // this.console.log(namepath)
-    // namepath.then(function (result) {
-    try {
-        path = namepath[0]
-        fs.readdir(path, function (err, files) {
+    };
+    path = dialog.showOpenDialog(options);
+    path.then((value) => {
+        imagepath = value["filePaths"][0];
+        console.log(imagepath)
+        fs.readdir(imagepath, function (err, files) {
             if (err) throw err;
             max = files.length;
+            console.log(max)
         });
-    } catch (err) {
-        alert("正しいパスが指定されていません。アプリを終了します");
-        window.close();
-    }
-    // });
-}
+    });
+};
 
 button.addEventListener('click', function (clickEvent) {
-    console.log("Connect");
+    console.log("Connecting...");
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
     socket = tls.connect(10023, 'pss.seigo2016.com', options, () => {
@@ -50,21 +49,30 @@ button.addEventListener('click', function (clickEvent) {
         process.stdin.resume();
     });
     socket.on('data', (data) => {
-        console.log(data.toString());
         if (data.toString() == '接続完了') {
             console.log("Connected")
-            comment_list.push([data.toString()])
-            document.body.style.backgroundImage = 'url("' + path + '/スライド1.png")';
-            document.body.style.backgroundSize = 'cover';
             initCommentViewer();
-            setInterval(createComment, 1000);
+            setInterval(createComment, 999);
             setInterval(updateComment, 1);
+            comment_list.push([data.toString()])
+            body = document.getElementById("body")
+            body.style.backgroundSize = 'cover';
+            Jimp.read(imagepath + "/スライド1.png", function (err, image) {
+                if (err) throw err;
+                imageresize = image.resize(window.parent.screen.width, window.parent.screen.height)
+                imageresize = imageresize.getBase64(Jimp.MIME_JPEG, function (err, src) {
+                    console.log(src)
+                    body.style.backgroundImage = 'url("' + src + '")';
+                });
+            });
+            body.style.width = window.parent.screen.width + "px";
+            body.style.height = window.parent.screen.height + "px";
         } else if (data.toString() == '認証エラー') {
             alert("ログインに失敗しました。アプリを終了します");
             window.close();
         } else if (data.toString() != 'PING') {
-            comment_list.push([data.toString()]);
-            console.log(data.toString);
+            comment_list.push([data.toString()])
+            console.log(data.toString());
         }
     });
 })
@@ -103,18 +111,29 @@ function initCommentViewer() {
     document.getElementById('body').appendChild(canvas_main);
 }
 
+function changeSlide() {
+    Jimp.read(imagepath + `/スライド${nowPageNumber}.png`, function (err, image) {
+        if (err) throw err;
+        imageresize = image.resize(window.parent.screen.width, window.parent.screen.height)
+        imageresize = imageresize.getBase64(Jimp.MIME_JPEG, function (err, src) {
+            console.log(src)
+            body.style.backgroundImage = 'url("' + src + '")';
+        });
+    });
+}
+
 document.onkeydown = function (e) {
     if (e.keyCode == 78) {
-        if (nowPageNumber < max) {
+        if (nowPageNumber < max - 1) {
             nowPageNumber++;
-            document.body.style.backgroundImage = `url("${path}/スライド${nowPageNumber}.png")`;
+            changeSlide();
         }
 
     }
     else if (e.keyCode == 80) {
         if (nowPageNumber > 1) {
             nowPageNumber--;
-            document.body.style.backgroundImage = `url("${path}/スライド${nowPageNumber}.png")`;
+            changeSlide();
         }
     } else if (e.keyCode == 81) {
         socket.destroy()
