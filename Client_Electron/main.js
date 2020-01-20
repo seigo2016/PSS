@@ -4,8 +4,7 @@ const dialog = require('electron').remote.dialog;
 const tls = require('tls');
 const fs = require('fs');
 const Jimp = require('jimp')
-const options = {
-    cert: [fs.readFileSync(process.cwd() + '/src/server.crt')],
+const server_options = {
     rejectUnauthorized: false
 };
 let countComment = 0;
@@ -39,7 +38,7 @@ button.addEventListener('click', function (clickEvent) {
     console.log("Connecting...");
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
-    socket = tls.connect(10023, 'pss.seigo2016.com', options, () => {
+    socket = tls.connect(10023, 'pss.seigo2016.com', server_options, () => {
         let data = JSON.stringify({
             'username': username,
             'password': password
@@ -61,7 +60,6 @@ button.addEventListener('click', function (clickEvent) {
                 if (err) throw err;
                 imageresize = image.resize(window.parent.screen.width, window.parent.screen.height)
                 imageresize = imageresize.getBase64(Jimp.MIME_JPEG, function (err, src) {
-                    console.log(src)
                     body.style.backgroundImage = 'url("' + src + '")';
                 });
             });
@@ -116,7 +114,6 @@ function changeSlide() {
         if (err) throw err;
         imageresize = image.resize(window.parent.screen.width, window.parent.screen.height)
         imageresize = imageresize.getBase64(Jimp.MIME_JPEG, function (err, src) {
-            console.log(src)
             body.style.backgroundImage = 'url("' + src + '")';
         });
     });

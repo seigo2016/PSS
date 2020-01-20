@@ -117,3 +117,6 @@ PSS/
 *.png
 node_modules/
 *.code-workspace
+Client/
+image/
+*darwin-x64/

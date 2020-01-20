@@ -1,20 +1,21 @@
 {
-  "name": "client_electron",
+  "name": "PSS_Client",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "seigo2016",
+  "license": "MIT",
   "devDependencies": {
     "electron": "^7.1.9",
+    "electron-packager": "^14.2.0",
     "electron-rebuild": "^1.8.8"
   },
   "dependencies": {
+    "electron-builder": "^22.2.0",
     "jimp": "^0.9.3",
-    "sharp": "^0.24.0",
     "socket.io": "^2.3.0"
   }
 }
