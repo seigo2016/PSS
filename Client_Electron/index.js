@@ -38,7 +38,6 @@ app.on('ready', function () {
   }
   mainWindow.setFullScreen(true);
   mainWindow.loadURL('file://' + __dirname + '/index.html');
-  mainWindow.webContents.openDevTools();
   mainWindow.on('closed', function () {
     mainWindow = null;
   });

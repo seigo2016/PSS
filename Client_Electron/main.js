@@ -94,12 +94,12 @@ function createComment() {
 }
 function updateComment() {
     let view_comment_list = document.getElementsByClassName("comment");
-    for (let j = 0; j < view_comment_list.length; j++) {
-        view_comment_list[j].style.left = (Number(view_comment_list[j].style.left.replace("px", "")) - 0.8) + "px";
-        if (screen.width - Number(view_comment_list[j].style.left.replace("px", "")) < -100) {
-            view_comment_list[j].parentNode.removeChild(view_comment_list[j]);
+    view_comment_list.forEach(value => {
+        value.style.left = (Number(value.style.left.replace("px", "")) - 0.8) + "px";
+        if (Number(value.style.left.replace("px", "")) < -300) {
+            value.parentNode.removeChild(value);
         }
-    }
+    });
 }
 function initCommentViewer() {
     let canvas_main = document.createElement('div');
@@ -120,19 +120,19 @@ function changeSlide() {
 }
 
 document.onkeydown = function (e) {
-    if (e.keyCode == 78) {
+    if (e.key == 'n') {
         if (nowPageNumber < max - 1) {
             nowPageNumber++;
             changeSlide();
         }
 
     }
-    else if (e.keyCode == 80) {
+    else if (e.key == 'p') {
         if (nowPageNumber > 1) {
             nowPageNumber--;
             changeSlide();
         }
-    } else if (e.keyCode == 81) {
+    } else if (e.key == 'q') {
         socket.destroy()
         let w = remote.getCurrentWindow()
         w.close()
